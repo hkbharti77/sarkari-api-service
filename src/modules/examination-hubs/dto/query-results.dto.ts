@@ -1,0 +1,36 @@
+import { IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+
+export class QueryResultsDto {
+  @ApiPropertyOptional({
+    example: 'UPSC',
+    description: 'Filter by recruiting agency/commission (UPSC, SSC, RRB, IBPS, etc.)',
+  })
+  @IsString()
+  @IsOptional()
+  agency?: string;
+
+  @ApiPropertyOptional({
+    example: 'Civil Services',
+    description: 'Search across post title or department',
+  })
+  @IsString()
+  @IsOptional()
+  search?: string;
+
+  @ApiPropertyOptional({ example: 1, default: 1 })
+  @IsNumber()
+  @Min(1)
+  @Type(() => Number)
+  @IsOptional()
+  page?: number = 1;
+
+  @ApiPropertyOptional({ example: 20, default: 20 })
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  @Type(() => Number)
+  @IsOptional()
+  limit?: number = 20;
+}

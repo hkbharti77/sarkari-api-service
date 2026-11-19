@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: govjob_mongodb
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: govjob_db
+    networks:
+      - govjob_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: govjob_redis
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - govjob_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: govjob_backend
+    restart: always
+    ports:
+      - '4000:4000'
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      API_PREFIX: api/v1
+      MONGODB_URI: mongodb://mongodb:27017/govjob_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: super_secret_jwt_key_govjob_2026_recruitment
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:5173,http://localhost:3000
+    volumes:
+      - uploads_data:/usr/src/app/uploads
+    networks:
+      - govjob_network
+
+volumes:
+  mongo_data:
+  redis_data:
+  uploads_data:
+
+networks:
+  govjob_network:
+    driver: bridge
