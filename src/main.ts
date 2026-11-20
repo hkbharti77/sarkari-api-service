@@ -1,3 +1,11 @@
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Load environment variables reliably from multiple possible execution roots
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), 'govjob-backend/.env') });
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -33,7 +41,7 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false,
       transformOptions: { enableImplicitConversion: true },
     })
   );

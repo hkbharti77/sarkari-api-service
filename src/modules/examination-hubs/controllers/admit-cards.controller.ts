@@ -1,10 +1,14 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AdmitCardsService } from '../services/admit-cards.service';
 import { QueryAdmitCardsDto } from '../dto/query-admit-cards.dto';
+import { PublicCacheInterceptor } from '../../../cache/cache-invalidation.interceptor';
+import { PublicRateLimiterGuard } from '../../../common/guards/public-rate-limiter.guard';
 
 @ApiTags('Public — Admit Cards & Examination Entry Passes')
 @Controller('public/admit-cards')
+@UseGuards(PublicRateLimiterGuard)
+@UseInterceptors(PublicCacheInterceptor)
 export class AdmitCardsController {
   constructor(private readonly admitCardsService: AdmitCardsService) {}
 

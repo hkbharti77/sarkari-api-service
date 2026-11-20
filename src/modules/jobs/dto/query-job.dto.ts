@@ -48,7 +48,7 @@ export class QueryJobDto {
   @IsOptional()
   page?: number;
 
-  @ApiPropertyOptional({ example: 20, description: 'Results per page (max 100)' })
+  @ApiPropertyOptional({ example: 20, description: 'Results per page (max 5000)' })
   @IsNumber()
   @Min(1)
   @Type(() => Number)

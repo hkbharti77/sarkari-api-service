@@ -25,8 +25,8 @@ export class MongooseConfigService implements MongooseOptionsFactory {
 
     return {
       uri,
-      maxPoolSize: 20,
-      minPoolSize: 5,
+      maxPoolSize: 50,
+      minPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       autoIndex: true,

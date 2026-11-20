@@ -32,8 +32,9 @@ export class PublicJobsService {
     const filter: FilterQuery<JobDocument> = {
       status: {
         $in: [
+          'Application Open / Active',
           'Admit Card / Active',
-          'Pending / Scrutiny',
+          'Answer Key Out',
           'Result Announced',
         ],
       },
@@ -109,8 +110,19 @@ export class PublicJobsService {
       this.jobModel.countDocuments(filter).exec(),
     ]);
 
+    // Sanitize any residual DRAFT- prefixes so public visitors always see clean official identifiers
+    const sanitizedData = data.map((job) => {
+      const cleanCustomId = (job.customId || '').replace(/^DRAFT-/i, '');
+      const cleanSlug = (job.slug || cleanCustomId.toLowerCase()).replace(/-draft-[0-9]+/gi, '');
+      return {
+        ...job,
+        customId: cleanCustomId,
+        slug: cleanSlug,
+      };
+    });
+
     return {
-      data,
+      data: sanitizedData,
       meta: {
         total,
         page: safePage,
@@ -121,29 +133,39 @@ export class PublicJobsService {
   }
 
   /**
-   * Get single job by public URL slug.
+   * Get single job by public URL slug, custom ID, or advertisement number.
    */
   async findBySlug(slug: string): Promise<Record<string, unknown>> {
+    const clean = slug.trim();
+    const withoutDraft = clean.replace(/^DRAFT-/i, '');
+    const withDraft = `DRAFT-${withoutDraft}`;
+    const cleanSlug = clean.toLowerCase().replace(/-draft-[0-9]+/gi, '');
+
     const job = await this.jobModel
       .findOne({
-        slug: slug.toLowerCase(),
-        status: {
-          $in: [
-            'Admit Card / Active',
-            'Pending / Scrutiny',
-            'Result Announced',
-          ],
-        },
+        $or: [
+          { slug: clean.toLowerCase() },
+          { slug: cleanSlug },
+          { customId: { $regex: new RegExp(`^(${clean}|${withoutDraft}|${withDraft})$`, 'i') } },
+          { advtNo: { $regex: new RegExp(`^${clean}$`, 'i') } },
+        ],
       })
       .lean()
       .exec();
 
     if (!job) {
       throw new NotFoundException(
-        `Recruitment notification not found or inactive for slug: ${slug}`,
+        `Recruitment notification not found for identifier: ${slug}`,
       );
     }
 
-    return job;
+    const cleanCustomId = (job.customId || '').replace(/^DRAFT-/i, '');
+    const finalCleanSlug = (job.slug || cleanCustomId.toLowerCase()).replace(/-draft-[0-9]+/gi, '');
+
+    return {
+      ...job,
+      customId: cleanCustomId,
+      slug: finalCleanSlug,
+    };
   }
 }

@@ -5,6 +5,7 @@ import { Job, JobSchema } from './schemas/job.schema';
 import { JobsService } from './services/jobs.service';
 import { QuotaCalculationService } from './services/quota-calculation.service';
 import { KpiService } from './services/kpi.service';
+import { AiExtractionService } from './services/ai-extraction.service';
 import { AdminJobsController } from './controllers/admin-jobs.controller';
 import { KpiController } from './controllers/kpi.controller';
 import { AuthModule } from '../auth/auth.module';
@@ -18,6 +19,7 @@ import { AuthModule } from '../auth/auth.module';
     JobsService,
     QuotaCalculationService,
     KpiService,
+    AiExtractionService,
   ],
   controllers: [
     AdminJobsController,
@@ -27,6 +29,8 @@ import { AuthModule } from '../auth/auth.module';
     JobsService,
     QuotaCalculationService,
     KpiService,
+    AiExtractionService,
   ],
 })
 export class JobsModule {}
+

@@ -3,15 +3,19 @@ import { Document } from 'mongoose';
 
 // ─── PipelineStatus — matches React admin frontend types exactly ────────────
 export type PipelineStatus =
+  | 'Application Open / Active'
   | 'Admit Card / Active'
-  | 'Pending / Scrutiny'
+  | 'Answer Key Out'
   | 'Result Announced'
+  | 'Pending / Scrutiny'
   | 'Rejected / Cancelled';
 
 export const PIPELINE_STATUS_VALUES: PipelineStatus[] = [
+  'Application Open / Active',
   'Admit Card / Active',
-  'Pending / Scrutiny',
+  'Answer Key Out',
   'Result Announced',
+  'Pending / Scrutiny',
   'Rejected / Cancelled',
 ];
 
@@ -97,11 +101,11 @@ export class Job {
   customId: string;
 
   /** Official advertisement number — e.g. "Advt. No. 05/2026-CSP" */
-  @Prop({ required: true, trim: true })
+  @Prop({ default: '', trim: true })
   advtNo: string;
 
   /** Full post title — e.g. "Civil Services (Preliminary) Examination 2026" */
-  @Prop({ required: true, trim: true })
+  @Prop({ default: '', trim: true })
   postTitle: string;
 
   /** URL-safe slug — auto-generated or supplied */
@@ -109,19 +113,19 @@ export class Job {
   slug: string;
 
   /** Recruiting body — e.g. "Union Public Service Commission (UPSC)" */
-  @Prop({ required: true, index: true, trim: true })
+  @Prop({ default: '', index: true, trim: true })
   department: string;
 
   /** Ministry / cadre code — e.g. "DoPT · All India Services" */
-  @Prop({ required: true, trim: true })
+  @Prop({ default: '', trim: true })
   ministryCode: string;
 
   /** Pay matrix reference — e.g. "Level-10 (₹56,100 – ₹1,77,500)" */
-  @Prop({ required: true, trim: true })
+  @Prop({ default: '', trim: true })
   payLevel: string;
 
   /** Total advertised vacancies */
-  @Prop({ required: true, min: 1 })
+  @Prop({ default: 0, min: 0 })
   vacancies: number;
 
   /** Auto-calculated statutory category breakdown */
@@ -141,7 +145,7 @@ export class Job {
   startDate: string;
 
   /** Application deadline date — "YYYY-MM-DD" */
-  @Prop({ required: true })
+  @Prop({ default: '', trim: true })
   deadlineDate: string;
 
   /** Exam date — "YYYY-MM-DD" (optional until scheduled) */
@@ -183,6 +187,18 @@ export class Job {
   /** URL to official notice PDF */
   @Prop({ default: null, trim: true })
   officialNoticePdfUrl: string;
+
+  /** Direct link to download Admit Card / Hall Ticket */
+  @Prop({ default: null, trim: true })
+  admitCardUrl?: string;
+
+  /** Direct link to view/download Answer Key & Objection Tracker */
+  @Prop({ default: null, trim: true })
+  answerKeyUrl?: string;
+
+  /** Direct link to download official Syllabus PDF */
+  @Prop({ default: null, trim: true })
+  syllabusUrl?: string;
 
   /** Multi-stage selection process and examination scheme */
   @Prop({

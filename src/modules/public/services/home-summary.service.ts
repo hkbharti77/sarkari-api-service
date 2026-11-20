@@ -16,8 +16,9 @@ export class HomeSummaryService {
 
   async getHomeSummary(): Promise<HomeSummaryResponseDto> {
     const activeStatuses = [
+      'Application Open / Active',
       'Admit Card / Active',
-      'Pending / Scrutiny',
+      'Answer Key Out',
       'Result Announced',
     ];
 

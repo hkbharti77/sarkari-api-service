@@ -51,6 +51,43 @@ export class ApplicationFeesDto {
   paymentMode?: string;
 }
 
+export class CategoryBreakdownDto {
+  @ApiPropertyOptional({ example: 450, description: 'Unreserved (UR) category vacancies' })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  UR?: number;
+
+  @ApiPropertyOptional({ example: 280, description: 'Other Backward Classes (OBC) vacancies' })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  OBC?: number;
+
+  @ApiPropertyOptional({ example: 150, description: 'Scheduled Castes (SC) vacancies' })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  SC?: number;
+
+  @ApiPropertyOptional({ example: 75, description: 'Scheduled Tribes (ST) vacancies' })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  ST?: number;
+
+  @ApiPropertyOptional({ example: 100, description: 'Economically Weaker Sections (EWS) vacancies' })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  EWS?: number;
+}
+
 export class PostBreakdownItemDto {
   @ApiProperty({ example: 'Station Master' })
   @IsString()
@@ -107,21 +144,27 @@ export class CreateJobDto {
   @IsNotEmpty()
   department: string;
 
-  @ApiProperty({ example: 'DoPT · All India Services', description: 'Ministry / cadre code' })
+  @ApiPropertyOptional({ example: 'DoPT · All India Services', description: 'Ministry / cadre code' })
   @IsString()
-  @IsNotEmpty()
-  ministryCode: string;
+  @IsOptional()
+  ministryCode?: string;
 
-  @ApiProperty({ example: 'Level-10 (₹56,100 – ₹1,77,500)', description: 'Pay matrix level' })
+  @ApiPropertyOptional({ example: 'Level-10 (₹56,100 – ₹1,77,500)', description: 'Pay matrix level' })
   @IsString()
-  @IsNotEmpty()
-  payLevel: string;
+  @IsOptional()
+  payLevel?: string;
 
-  @ApiProperty({ example: 1056, description: 'Total advertised vacancies (category breakdown auto-calculated)' })
+  @ApiProperty({ example: 1056, description: 'Total advertised vacancies' })
   @IsNumber()
-  @Min(1)
+  @Min(0)
   @Type(() => Number)
   vacancies: number;
+
+  @ApiPropertyOptional({ type: CategoryBreakdownDto, description: 'Statutory category-wise seat matrix (UR, OBC, SC, ST, EWS)' })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CategoryBreakdownDto)
+  categoryBreakdown?: CategoryBreakdownDto;
 
   @ApiPropertyOptional({ example: '2026-11-01', description: 'Application opening / gazette release date (YYYY-MM-DD)' })
   @IsString()
@@ -130,11 +173,12 @@ export class CreateJobDto {
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'startDate must be in YYYY-MM-DD format' })
   startDate?: string;
 
-  @ApiProperty({ example: '2026-11-28', description: 'Application deadline date (YYYY-MM-DD)' })
+  @ApiPropertyOptional({ example: '2026-11-28', description: 'Application deadline date (YYYY-MM-DD)' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
+  @ValidateIf((o) => Boolean(o.deadlineDate && o.deadlineDate.trim().length > 0))
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'deadlineDate must be in YYYY-MM-DD format' })
-  deadlineDate: string;
+  deadlineDate?: string;
 
   @ApiPropertyOptional({ example: '2026-12-20', description: 'Exam date (YYYY-MM-DD)' })
   @IsString()
@@ -143,10 +187,10 @@ export class CreateJobDto {
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'examDate must be in YYYY-MM-DD format' })
   examDate?: string;
 
-  @ApiProperty({ example: 'GSR-412(E)/2026', description: 'Official gazette notification reference' })
+  @ApiPropertyOptional({ example: 'GSR-412(E)/2026', description: 'Official gazette notification reference' })
   @IsString()
-  @IsNotEmpty()
-  gazetteRef: string;
+  @IsOptional()
+  gazetteRef?: string;
 
   @ApiPropertyOptional({
     enum: PIPELINE_STATUS_VALUES,
@@ -173,6 +217,21 @@ export class CreateJobDto {
   @IsString()
   @IsOptional()
   officialNoticePdfUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://upsconline.nic.in/admitcard.html', description: 'Direct Admit Card / Hall Ticket Download URL' })
+  @IsString()
+  @IsOptional()
+  admitCardUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://upsconline.nic.in/answerkey.pdf', description: 'Direct Answer Key & Objection Tracker URL' })
+  @IsString()
+  @IsOptional()
+  answerKeyUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://upsc.gov.in/syllabus.pdf', description: 'Official Syllabus & Exam Scheme PDF URL' })
+  @IsString()
+  @IsOptional()
+  syllabusUrl?: string;
 
   @ApiPropertyOptional({
     example: ['Stage 1: Preliminary Exam', 'Stage 2: Main Exam', 'Stage 3: Interview'],

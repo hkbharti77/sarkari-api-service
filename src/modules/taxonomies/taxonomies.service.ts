@@ -1,4 +1,4 @@
-import { Injectable, Logger, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, ConflictException, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Organization, OrganizationDocument } from './schemas/organization.schema';
@@ -14,7 +14,7 @@ import {
 } from './seeds/master-taxonomies.seed';
 
 @Injectable()
-export class TaxonomiesService {
+export class TaxonomiesService implements OnModuleInit {
   private readonly logger = new Logger(TaxonomiesService.name);
 
   constructor(
@@ -26,9 +26,21 @@ export class TaxonomiesService {
     private readonly stateModel: Model<StateDocument>,
   ) {}
 
+  async onModuleInit() {
+    try {
+      await this.seedMasterTaxonomies();
+    } catch (err: unknown) {
+      this.logger.warn(`Initial taxonomy seeding skipped or encountered error: ${err}`);
+    }
+  }
+
   // Organizations
   async findAllOrganizations(): Promise<Organization[]> {
-    return this.orgModel.find({ isActive: true }).sort({ shortName: 1 }).exec();
+    const currentCount = await this.orgModel.countDocuments();
+    if (currentCount < SEED_ORGANIZATIONS.length) {
+      await this.seedMasterTaxonomies();
+    }
+    return this.orgModel.find({ isActive: true }).sort({ name: 1 }).exec();
   }
 
   async findOrganizationBySlug(slug: string): Promise<Organization | null> {
@@ -103,7 +115,7 @@ export class TaxonomiesService {
     for (const org of SEED_ORGANIZATIONS) {
       await this.orgModel.updateOne(
         { slug: org.slug },
-        { $setOnInsert: org },
+        { $set: org },
         { upsert: true }
       );
     }

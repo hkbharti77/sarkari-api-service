@@ -21,6 +21,7 @@ import { SeedModule } from './seeds/seed.module';
       isGlobal: true,
       load: [configuration],
       validate,
+      envFilePath: ['.env', 'govjob-backend/.env'],
     }),
     DatabaseModule,
     HealthModule,

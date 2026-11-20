@@ -25,6 +25,16 @@ class CategoryBreakdownUpdateDto {
 }
 
 export class UpdateJobDto {
+  @ApiPropertyOptional({ example: 'Advt. No. 05/2026-CSP' })
+  @IsString()
+  @IsOptional()
+  advtNo?: string;
+
+  @ApiPropertyOptional({ example: 'Union Public Service Commission (UPSC)' })
+  @IsString()
+  @IsOptional()
+  department?: string;
+
   @ApiPropertyOptional({ example: 'Civil Services (Preliminary) Examination 2026 — Updated' })
   @IsString()
   @IsOptional()
@@ -40,9 +50,9 @@ export class UpdateJobDto {
   @IsOptional()
   payLevel?: string;
 
-  @ApiPropertyOptional({ example: 1200, description: 'Updated total vacancies — recalculates category breakdown automatically' })
+  @ApiPropertyOptional({ example: 1200, description: 'Updated total vacancies' })
   @IsNumber()
-  @Min(1)
+  @Min(0)
   @Type(() => Number)
   @IsOptional()
   vacancies?: number;
@@ -57,8 +67,41 @@ export class UpdateJobDto {
   @ApiPropertyOptional({ example: '2026-12-15' })
   @IsString()
   @IsOptional()
+  @ValidateIf((o) => Boolean(o.deadlineDate && o.deadlineDate.trim().length > 0))
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'deadlineDate must be in YYYY-MM-DD format' })
   deadlineDate?: string;
+
+  @ApiPropertyOptional({ example: 'GSR-412(E)/2026' })
+  @IsString()
+  @IsOptional()
+  gazetteRef?: string;
+
+  @ApiPropertyOptional({ example: 'UPSC-CSE-2026-01' })
+  @IsString()
+  @IsOptional()
+  customId?: string;
+
+  @ApiPropertyOptional({ example: 'ALL' })
+  @IsString()
+  @IsOptional()
+  stateCode?: string;
+
+  @ApiPropertyOptional({ example: 'Graduate' })
+  @IsString()
+  @IsOptional()
+  educationTier?: string;
+
+  @IsString()
+  @IsOptional()
+  mongoId?: string;
+
+  @IsString()
+  @IsOptional()
+  _id?: string;
+
+  @IsString()
+  @IsOptional()
+  id?: string;
 
   @ApiPropertyOptional({ example: '2027-01-10' })
   @IsString()
@@ -77,6 +120,12 @@ export class UpdateJobDto {
   })
   @IsOptional()
   status?: PipelineStatus;
+
+  @ApiPropertyOptional({ description: 'Category-wise vacancy breakdown (UR, OBC, SC, ST, EWS)' })
+  @ValidateNested()
+  @Type(() => CategoryBreakdownUpdateDto)
+  @IsOptional()
+  categoryBreakdown?: CategoryBreakdownUpdateDto;
 
   @ApiPropertyOptional({ description: 'Override category-wise cutoff marks after evaluation' })
   @ValidateNested()
@@ -119,6 +168,21 @@ export class UpdateJobDto {
   @IsString()
   @IsOptional()
   officialNoticePdfUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://upsconline.nic.in/admitcard.html' })
+  @IsString()
+  @IsOptional()
+  admitCardUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://upsconline.nic.in/answerkey.pdf' })
+  @IsString()
+  @IsOptional()
+  answerKeyUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://upsc.gov.in/syllabus.pdf' })
+  @IsString()
+  @IsOptional()
+  syllabusUrl?: string;
 
   @ApiPropertyOptional({ example: ['Stage 1: CBT', 'Stage 2: DV'] })
   @IsArray()

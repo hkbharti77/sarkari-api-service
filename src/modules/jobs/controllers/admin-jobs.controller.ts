@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -19,9 +20,11 @@ import {
 } from '@nestjs/swagger';
 
 import { JobsService } from '../services/jobs.service';
+import { AiExtractionService } from '../services/ai-extraction.service';
 import { CreateJobDto } from '../dto/create-job.dto';
 import { UpdateJobDto } from '../dto/update-job.dto';
 import { QueryJobDto } from '../dto/query-job.dto';
+import { AiExtractJobDto } from '../dto/ai-extract.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -34,7 +37,51 @@ import { JwtPayload } from '../../auth/strategies/jwt.strategy';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class AdminJobsController {
-  constructor(private readonly jobsService: JobsService) {}
+  constructor(
+    private readonly jobsService: JobsService,
+    private readonly aiExtractionService: AiExtractionService,
+  ) {}
+
+  // ─── POST /admin/jobs/ai-extract ──────────────────────────────────────────
+
+  @Post('ai-extract')
+  @UseGuards(RolesGuard)
+  @Roles(AdminRole.SUPER_ADMIN, AdminRole.PUBLISHER, AdminRole.EDITOR)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '[PUBLISHER, EDITOR, SUPER_ADMIN] Extract structured job details from PDF or text using Gemini LLM',
+    description:
+      'Parses advertisement number, post title, department, vacancies, deadlines, fees, qualifications, and FAQs into structured form fields.',
+  })
+  @ApiResponse({ status: 200, description: 'Structured job details extracted and auto-saved to DB as draft' })
+  @ApiResponse({ status: 400, description: 'Missing text or file payload, or invalid API key' })
+  async extractJobAi(
+    @Body() dto: AiExtractJobDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const extracted = await this.aiExtractionService.extractJobData(dto);
+
+    // Option B: Direct DB Auto-Save (default true)
+    // Automatically creates an internal Draft in MongoDB with status: 'Pending / Scrutiny'
+    let draftJob: any = null;
+    if (dto.autoSaveDraft !== false) {
+      draftJob = await this.jobsService.createDraftFromExtraction(
+        extracted,
+        user?.email || 'admin@govjob.internal',
+        user?.role || AdminRole.SUPER_ADMIN,
+      );
+    }
+
+    return {
+      ...extracted,
+      draftJob: draftJob
+        ? {
+            ...draftJob,
+            _id: draftJob._id?.toString() || draftJob.id,
+          }
+        : undefined,
+    };
+  }
 
   // ─── POST /admin/jobs ─────────────────────────────────────────────────────
 
@@ -100,5 +147,24 @@ export class AdminJobsController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.jobsService.update(id, dto, user.email, user.role);
+  }
+
+  // ─── DELETE /admin/jobs/:id ───────────────────────────────────────────────
+
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(AdminRole.SUPER_ADMIN, AdminRole.PUBLISHER)
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId or customId of the job to delete' })
+  @ApiOperation({
+    summary: '[SUPER_ADMIN, PUBLISHER] Permanently delete a requisition',
+    description: 'Deletes the specified requisition and logs the deletion in the immutable audit trail.',
+  })
+  @ApiResponse({ status: 200, description: 'Requisition deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Job not found' })
+  async deleteJob(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.jobsService.delete(id, user.email, user.role);
   }
 }

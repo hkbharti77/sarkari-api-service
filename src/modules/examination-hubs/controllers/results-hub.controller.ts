@@ -1,10 +1,14 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ResultsHubService } from '../services/results-hub.service';
 import { QueryResultsDto } from '../dto/query-results.dto';
+import { PublicCacheInterceptor } from '../../../cache/cache-invalidation.interceptor';
+import { PublicRateLimiterGuard } from '../../../common/guards/public-rate-limiter.guard';
 
 @ApiTags('Public — Examination Results & Official Cutoffs')
 @Controller('public/results')
+@UseGuards(PublicRateLimiterGuard)
+@UseInterceptors(PublicCacheInterceptor)
 export class ResultsHubController {
   constructor(private readonly resultsHubService: ResultsHubService) {}
 

@@ -1,10 +1,21 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PublicJobsService } from '../services/public-jobs.service';
 import { PublicSearchQueryDto } from '../dto/public-search-query.dto';
+import { PublicCacheInterceptor } from '../../../cache/cache-invalidation.interceptor';
+import { PublicRateLimiterGuard } from '../../../common/guards/public-rate-limiter.guard';
 
 @ApiTags('Public — BharatRojgar Job Search & Details')
 @Controller('public/jobs')
+@UseGuards(PublicRateLimiterGuard)
+@UseInterceptors(PublicCacheInterceptor)
 export class PublicJobsController {
   constructor(private readonly publicJobsService: PublicJobsService) {}
 
